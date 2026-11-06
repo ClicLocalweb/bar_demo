@@ -81,7 +81,6 @@ input:focus, select:focus { outline: 2px solid var(--acento); border-color: tran
 .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .casilla { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin-top: 18px; }
 .casilla input { width: auto; margin-top: 4px; }
-.trampa { position: absolute; left: -9999px; }
 
 .aviso { padding: 12px 14px; border-radius: 10px; margin: 14px 0; font-size: .95rem; }
 .aviso.ok { background: #e6f3ec; color: var(--ok); }

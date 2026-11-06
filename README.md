@@ -13,7 +13,7 @@ Ejemplo: **Bar Demo** (datos inventados).
 | `apps-script/Codigo.gs` | Código que se pega en la planilla (Extensiones > Apps Script). Arriba tiene `AJUSTES`. |
 | `index.html`, `carta.html`, `reserva.html`, `visita.html` | Las páginas. No hace falta tocarlas. |
 | `js/carta-demo.js` | Carta de ejemplo que se ve mientras no está conectada la planilla. |
-| `qr/` | QR que apunta a la página de visitas. |
+| `qr/` | QR que apunta a la página principal. |
 
 ## Dar de alta un restaurante nuevo (resumen)
 
@@ -25,7 +25,7 @@ Ejemplo: **Bar Demo** (datos inventados).
 6. **Editar `config.js`** en GitHub (lápiz ✏️): datos del local y pegar la URL en `urlAppsScript`. *Commit changes*.
 7. **Publicar la página:** *Settings > Pages > Branch: main / root > Save*. En 1 o 2 minutos queda en `https://USUARIO.github.io/NOMBRE-REPO/`.
 8. **Carta:** cargarla en la pestaña *Carta* de la planilla (columna Disponible: "Sí" o "No").
-9. **NFC y QR:** grabar en el chip el link `https://USUARIO.github.io/NOMBRE-REPO/visita.html` y generar el QR de ese mismo link.
+9. **NFC y QR:** grabar en el chip el link de la página principal `https://USUARIO.github.io/NOMBRE-REPO/` (desde ahí el cliente toca "Sumar mi visita") y generar el QR de ese mismo link.
 10. **Probar:** hacer una reserva y sumar una visita con tu teléfono. Revisar planilla y calendario.
 
 > Si cambiás el código del script después, hay que hacer *Implementar > Gestionar implementaciones > editar (lápiz) > Versión: nueva*, si no, sigue andando la versión vieja.
@@ -33,6 +33,6 @@ Ejemplo: **Bar Demo** (datos inventados).
 ## Cómo funciona
 
 - **Reservas:** se aceptan todas y quedan "Pendiente". El dueño confirma por WhatsApp y cambia el estado en la planilla.
-- **Visitas:** el cliente escanea el NFC/QR, pone su teléfono y suma 1 visita (máximo 1 por día por teléfono). Al llegar al número de visitas ve el beneficio en pantalla y queda anotado en "Beneficios ganados".
+- **Visitas:** el cliente escanea el NFC/QR, entra al inicio, toca "Sumar mi visita", pone su teléfono y suma 1 visita (máximo 1 por día por teléfono). Al llegar al número de visitas ve el beneficio en pantalla y queda anotado en "Beneficios ganados".
 - **Cumpleaños del mes:** pestaña que se actualiza sola con quienes cumplen ese mes.
 - **Promociones:** solo se les escribe a quienes tienen "Sí" en "Acepta promos".

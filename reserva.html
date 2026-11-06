@@ -44,9 +44,6 @@
         <span>Acepto recibir promociones y novedades por WhatsApp.</span>
       </label>
 
-      <!-- Campo trampa contra robots: las personas no lo ven -->
-      <input class="trampa" id="web" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
-
       <div id="mensaje" class="aviso oculto"></div>
       <button class="boton" type="submit" id="enviar" style="margin-top:18px">Pedir reserva</button>
     </form>
@@ -103,7 +100,6 @@
 
     $("form").addEventListener("submit", function (ev) {
       ev.preventDefault();
-      if ($("web").value) return; // robot
 
       var datos = {
         nombre: $("nombre").value.trim(),
@@ -132,7 +128,7 @@
       $("enviar").textContent = "Enviando…";
 
       APP.api("reserva", datos).then(function (r) {
-        if (!r.ok) throw new Error(r.error || "Error");
+        if (!r.ok) throw new Error(r.error || "Error desconocido");
         var fecha = new Date(datos.dia + "T12:00:00").toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
         $("resumen").innerHTML = "<strong>" + APP.esc(datos.nombre) + "</strong><br>" + APP.esc(fecha) + " a las " + datos.hora + " h<br>" +
           datos.personas + (datos.personas === "1" ? " persona" : " personas");
@@ -141,8 +137,8 @@
         $("form").classList.add("oculto");
         $("listo").classList.remove("oculto");
         window.scrollTo(0, 0);
-      }).catch(function () {
-        error("No pudimos enviar la reserva. Probá de nuevo o escribinos por WhatsApp.");
+      }).catch(function (e) {
+        error("No pudimos enviar la reserva (" + (e && e.message ? e.message : "sin conexión") + "). Probá de nuevo o escribinos por WhatsApp.");
         $("enviar").disabled = false;
         $("enviar").textContent = "Pedir reserva";
       });
