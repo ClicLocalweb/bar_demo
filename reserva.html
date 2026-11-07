@@ -74,10 +74,13 @@
     // Horarios
     function minutos(h) { var p = h.split(":"); return Number(p[0]) * 60 + Number(p[1]); }
     var opcionesHora = '<option value="">Elegí</option>';
-    for (var m = minutos(R.horaDesde); m <= minutos(R.horaHasta); m += R.intervaloMinutos) {
-      var t = String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
-      opcionesHora += '<option value="' + t + '">' + t + " h</option>";
-    }
+    var turnos = R.turnos || [{ desde: R.horaDesde, hasta: R.horaHasta }];
+    turnos.forEach(function (tu) {
+      for (var m = minutos(tu.desde); m <= minutos(tu.hasta); m += R.intervaloMinutos) {
+        var t = String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+        opcionesHora += '<option value="' + t + '">' + t + " h</option>";
+      }
+    });
     $("hora").innerHTML = opcionesHora;
 
     // Personas

@@ -32,8 +32,11 @@ window.CONFIG = {
 
   // --- Reservas ---
   reservas: {
-    horaDesde: "19:00",
-    horaHasta: "23:30",       // último turno que se puede elegir
+    // Turnos: desde = primer horario, hasta = último horario que se puede elegir.
+    // Para dos turnos (mediodía y noche) agregá otra línea igual, separada por coma.
+    turnos: [
+      { desde: "19:00", hasta: "23:30" }
+    ],
     intervaloMinutos: 30,
     diasCerrado: [1],          // 0=domingo, 1=lunes, ... 6=sábado
     maxPersonas: 20,
