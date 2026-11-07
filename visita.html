@@ -53,7 +53,8 @@
     var C = window.CONFIG, N = C.visitasParaBeneficio;
     var $ = function (id) { return document.getElementById(id); };
     $("bajada").textContent = "Sumá tu visita: a las " + N + " visitas te ganás " + C.textoBeneficio + ".";
-    $("btn-resena").href = C.linkResenaGoogle;
+    if (C.linkResenaGoogle) $("btn-resena").href = C.linkResenaGoogle;
+    else $("btn-resena").parentNode.classList.add("oculto");
 
     // Recordar el teléfono en este celular (comodidad, no es obligatorio)
     function leer(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } }
