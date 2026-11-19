@@ -9,14 +9,18 @@
 </head>
 <body data-pagina="carta">
   <main class="contenedor">
-    <h1>Carta</h1>
-    <p class="bajada">Precios en pesos. Pueden cambiar sin aviso.</p>
+    <div class="carta-portada">
+      <h1>Nuestra carta</h1>
+      <p>Precios en pesos. Pueden cambiar sin aviso.</p>
+    </div>
+    <nav id="chips" class="chips" aria-label="Categorías"></nav>
     <div id="estado" class="aviso info">Cargando la carta…</div>
     <div id="carta"></div>
-    <a class="boton" href="reserva.html" style="margin-top:24px">Reservar mesa</a>
+    <a class="boton carta-reservar" href="reserva.html">Reservar mesa</a>
   </main>
 
   <script src="js/app.js"></script>
+  <script src="js/fotos-genericas.js"></script>
   <script src="js/carta-demo.js"></script>
   <script>
     var estado = document.getElementById("estado");
@@ -24,6 +28,31 @@
     function precio(p) {
       var n = Number(String(p).replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", "."));
       return isNaN(n) || n === 0 ? APP.esc(p) : "$ " + n.toLocaleString("es-AR");
+    }
+
+    // Si la foto de Drive no carga, prueba la genérica; si tampoco, la de por defecto.
+    function fotoFallo(img) {
+      var siguiente = img.getAttribute("data-generica");
+      img.removeAttribute("data-generica");
+      if (siguiente && img.src !== siguiente) { img.src = siguiente; return; }
+      if (img.src !== FOTO_POR_DEFECTO) { img.src = FOTO_POR_DEFECTO; return; }
+      img.onerror = null; img.style.visibility = "hidden";
+    }
+
+    function tarjeta(it) {
+      var agotado = String(it.disponible).toLowerCase() === "no";
+      var generica = fotoGenerica(it.nombre, it.categoria);
+      var foto = it.foto || generica;
+      var tienePrecio = String(it.precio).trim() !== "";
+      return '<article class="plato' + (agotado ? " agotado" : "") + '">' +
+        '<div class="plato-foto"><img loading="lazy" alt="' + APP.esc(it.nombre) + '" src="' + APP.esc(foto) + '"' +
+          (it.foto ? ' data-generica="' + APP.esc(generica) + '"' : "") + ' onerror="fotoFallo(this)">' +
+          (agotado ? '<span class="sello">Sin stock</span>' : "") +
+          (tienePrecio ? '<span class="plato-precio">' + precio(it.precio) + "</span>" : "") +
+        "</div>" +
+        '<div class="plato-texto"><h3>' + APP.esc(it.nombre) + "</h3>" +
+          (it.descripcion ? "<p>" + APP.esc(it.descripcion) + "</p>" : "") +
+        "</div></article>";
     }
 
     function mostrar(items) {
@@ -34,17 +63,31 @@
         if (!grupos[cat]) { grupos[cat] = []; orden.push(cat); }
         grupos[cat].push(it);
       });
-      document.getElementById("carta").innerHTML = orden.map(function (cat) {
-        return '<section class="categoria"><h2>' + APP.esc(cat) + '</h2><div class="tarjeta">' +
-          grupos[cat].map(function (it) {
-            var agotado = String(it.disponible).toLowerCase() === "no";
-            return '<div class="item' + (agotado ? " agotado" : "") + '"><div><h3>' + APP.esc(it.nombre) +
-              (agotado ? " (sin stock)" : "") + "</h3>" +
-              (it.descripcion ? "<p>" + APP.esc(it.descripcion) + "</p>" : "") +
-              '</div><div class="precio">' + precio(it.precio) + "</div></div>";
-          }).join("") + "</div></section>";
+      document.getElementById("chips").innerHTML = orden.map(function (cat, i) {
+        return '<a class="chip' + (i === 0 ? " activo" : "") + '" href="#cat-' + i + '">' + APP.esc(cat) + "</a>";
+      }).join("");
+      document.getElementById("carta").innerHTML = orden.map(function (cat, i) {
+        return '<section class="categoria" id="cat-' + i + '"><div class="cat-titulo"><h2>' + APP.esc(cat) + "</h2></div>" +
+          '<div class="platos">' + grupos[cat].map(tarjeta).join("") + "</div></section>";
       }).join("");
       estado.classList.add("oculto");
+      marcarChipActivo();
+    }
+
+    // Resalta la categoría que se está viendo al bajar
+    function marcarChipActivo() {
+      var chips = document.querySelectorAll(".chip");
+      var secciones = document.querySelectorAll(".categoria");
+      if (!("IntersectionObserver" in window) || !secciones.length) return;
+      var obs = new IntersectionObserver(function (entradas) {
+        entradas.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          var i = Array.prototype.indexOf.call(secciones, e.target);
+          chips.forEach(function (c, j) { c.classList.toggle("activo", i === j); });
+          if (chips[i] && chips[i].scrollIntoView) chips[i].scrollIntoView({ block: "nearest", inline: "center" });
+        });
+      }, { rootMargin: "-80px 0px -60% 0px" });
+      secciones.forEach(function (s) { obs.observe(s); });
     }
 
     if (!CONFIG.urlAppsScript) {

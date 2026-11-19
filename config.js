@@ -48,13 +48,20 @@ window.CONFIG = {
   textoBeneficio: "un trago de la casa gratis",
 
   // --- Colores ---
+  // Paleta cálida (bordó, mostaza y crema). Para otro local, cambiá estos 5 códigos.
   colores: {
-    primario: "#2f3e46",       // botones y títulos
-    acento: "#c9a227",         // detalles
-    fondo: "#f6f5f2",
+    primario: "#7a1f2b",       // bordó: encabezado, botones y títulos
+    acento: "#e0a526",         // mostaza: precios y detalles
+    fondo: "#fbf3e4",          // crema: fondo de la página
     tarjeta: "#ffffff",
-    texto: "#1f2421"
+    texto: "#2b1a17"
   },
+
+  // --- Fotos de la carta ---
+  // Las fotos propias van en la carpeta de Drive del local (nombre del archivo = nombre del plato).
+  // Si un plato no tiene foto, se usa una foto genérica automática.
+  // Opcional: forzar una foto genérica para una categoría. Ej: "Postres": "https://...jpg"
+  fotosPorCategoria: {},
 
   // --- Conexión con la planilla (Apps Script) ---
   // Pegá acá la URL que termina en /exec. Vacío = modo demo (carta de ejemplo, sin guardar datos).

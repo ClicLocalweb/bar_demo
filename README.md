@@ -12,6 +12,7 @@ Ejemplo: **Bar Demo** (datos inventados).
 | `config.js` | **El único archivo que se cambia por local**: nombre, colores, logo, horarios, dirección, WhatsApp, link de reseñas, visitas para el beneficio y URL del Apps Script. |
 | `apps-script/Codigo.gs` | Código que se pega en la planilla (Extensiones > Apps Script). Arriba tiene `AJUSTES`. |
 | `index.html`, `carta.html`, `reserva.html`, `visita.html` | Las páginas. No hace falta tocarlas. |
+| `js/fotos-genericas.js` | Fotos genéricas libres (Unsplash) para platos sin foto propia. Se eligen solas por el nombre del plato o la categoría. |
 | `js/carta-demo.js` | Carta de ejemplo que se ve mientras no está conectada la planilla. |
 | `qr/` | QR que apunta a la página principal. |
 
@@ -25,6 +26,7 @@ Ejemplo: **Bar Demo** (datos inventados).
 6. **Editar `config.js`** en GitHub (lápiz ✏️): datos del local y pegar la URL en `urlAppsScript`. *Commit changes*.
 7. **Publicar la página:** *Settings > Pages > Branch: main / root > Save*. En 1 o 2 minutos queda en `https://USUARIO.github.io/NOMBRE-REPO/`.
 8. **Carta:** cargarla en la pestaña *Carta* de la planilla (columna Disponible: "Sí" o "No").
+   **Fotos:** `configurarPlanilla` crea en tu Drive la carpeta *Fotos carta - NOMBRE*. Subir ahí las fotos con el **mismo nombre del plato** (ej. `Pizza muzzarella.jpg`; mayúsculas y tildes no importan). Una foto llamada como una categoría (ej. `Tragos.jpg`) se usa para los platos de esa categoría sin foto. Plato sin foto = foto genérica automática. Los cambios se ven en hasta 10 minutos.
 9. **NFC y QR:** grabar en el chip el link de la página principal `https://USUARIO.github.io/NOMBRE-REPO/` (desde ahí el cliente toca "Sumar mi visita") y generar el QR de ese mismo link.
 10. **Probar:** hacer una reserva y sumar una visita con tu teléfono. Revisar planilla y calendario.
 

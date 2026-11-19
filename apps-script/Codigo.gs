@@ -8,7 +8,8 @@ var AJUSTES = {
   UMBRAL_VISITAS: 5,            // igual que visitasParaBeneficio en config.js
   DURACION_RESERVA_HORAS: 2,    // largo del evento en el calendario
   ID_CALENDARIO: "",            // vacío = calendario principal de la cuenta
-  EMAIL_AVISO: ""               // opcional: mail que recibe aviso de cada reserva
+  EMAIL_AVISO: "",              // opcional: mail que recibe aviso de cada reserva
+  CARPETA_FOTOS: ""             // vacío = usa la carpeta que crea "prepararCarpetaFotos". También podés pegar el link de otra carpeta.
 };
 
 var HOJAS = {
@@ -66,6 +67,9 @@ function configurarPlanilla() {
 
   // Pedir permiso de calendario ahora (así no falla la primera reserva)
   calendario_();
+
+  // Carpeta de Drive para las fotos de la carta
+  try { prepararCarpetaFotos(); } catch (err) { Logger.log("Fotos: " + err); }
 }
 
 /* ---------- 2) ENTRADAS DESDE LA PÁGINA ---------- */
@@ -99,11 +103,74 @@ function doPost(e) {
 function leerCarta_() {
   var hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Carta");
   if (!hoja || hoja.getLastRow() < 2) return [];
+  var fotos = {};
+  try { fotos = fotosCarpeta_(); } catch (err) { /* sin fotos propias: la página usa las genéricas */ }
   return hoja.getRange(2, 1, hoja.getLastRow() - 1, 5).getValues()
     .filter(function (f) { return f[1] !== ""; })
     .map(function (f) {
-      return { categoria: f[0], nombre: f[1], descripcion: f[2], precio: f[3], disponible: f[4] };
+      // Foto del plato; si no hay, foto con el nombre de la categoría; si no, la página pone una genérica.
+      var id = fotos[normal_(f[1])] || fotos[normal_(f[0])] || "";
+      return { categoria: f[0], nombre: f[1], descripcion: f[2], precio: f[3], disponible: f[4],
+               foto: id ? "https://lh3.googleusercontent.com/d/" + id + "=w800" : "" };
     });
+}
+
+/* ---------- Fotos de la carta (carpeta de Drive) ----------
+   Elegí "prepararCarpetaFotos" arriba y tocá "Ejecutar" una sola vez.
+   Crea la carpeta "Fotos carta - NOMBRE DEL LOCAL" en tu Drive y la deja visible con el link.
+   Después solo hay que subir fotos con el MISMO nombre que el plato en la planilla
+   (ej: "Pizza muzzarella.jpg"). Mayúsculas y tildes no importan.
+   Una foto con el nombre de una categoría (ej: "Tragos.jpg") se usa para los platos de esa categoría sin foto. */
+function prepararCarpetaFotos() {
+  var carpeta = carpetaFotos_();
+  if (!carpeta) {
+    carpeta = DriveApp.createFolder("Fotos carta - " + AJUSTES.NOMBRE_LOCAL);
+    PropertiesService.getScriptProperties().setProperty("CARPETA_FOTOS", carpeta.getId());
+  }
+  try {
+    carpeta.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (err) {
+    Logger.log("No pude compartir la carpeta con link. Compartila a mano: Cualquier persona con el enlace > Lector.");
+  }
+  CacheService.getScriptCache().remove("fotos");
+  Logger.log("Carpeta de fotos lista: " + carpeta.getUrl());
+}
+
+function carpetaFotos_() {
+  var id = AJUSTES.CARPETA_FOTOS || PropertiesService.getScriptProperties().getProperty("CARPETA_FOTOS") || "";
+  var m = String(id).match(/[-\w]{25,}/);
+  if (!m) return null;
+  try { return DriveApp.getFolderById(m[0]); } catch (err) { return null; }
+}
+
+// Devuelve { "nombre normalizado": idDeArchivo }. Se guarda 10 minutos para que la carta cargue rápido.
+function fotosCarpeta_() {
+  var cache = CacheService.getScriptCache();
+  var guardado = cache.get("fotos");
+  if (guardado) return JSON.parse(guardado);
+  var mapa = {};
+  var carpeta = carpetaFotos_();
+  if (carpeta) {
+    var archivos = carpeta.getFiles();
+    while (archivos.hasNext()) {
+      var a = archivos.next();
+      if (String(a.getMimeType()).indexOf("image/") !== 0) continue;
+      try {
+        if (a.getSharingAccess() !== DriveApp.Access.ANYONE_WITH_LINK) {
+          a.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        }
+      } catch (err) { /* si no se puede compartir, la página usa la genérica */ }
+      mapa[normal_(a.getName().replace(/\.[^.]+$/, ""))] = a.getId();
+    }
+  }
+  try { cache.put("fotos", JSON.stringify(mapa), 600); } catch (err) {}
+  return mapa;
+}
+
+// "Pizza Muzzarella" / "pizza_muzzarella" / "Pizza muzzarella " -> "pizza muzzarella"
+function normal_(t) {
+  return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 /* ---------- Reservas ---------- */
