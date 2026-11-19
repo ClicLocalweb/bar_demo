@@ -28,6 +28,8 @@ Ejemplo: **Bar Demo** (datos inventados).
 9. **NFC y QR:** grabar en el chip el link de la página principal `https://USUARIO.github.io/NOMBRE-REPO/` (desde ahí el cliente toca "Sumar mi visita") y generar el QR de ese mismo link.
 10. **Probar:** hacer una reserva y sumar una visita con tu teléfono. Revisar planilla y calendario.
 
+> **Columna Confirmar:** cada reserva nueva trae en la columna K un link "📲 Confirmar" que abre WhatsApp con el mensaje armado. Para las reservas viejas, ejecutar una vez `completarConfirmar`.
+
 > Si cambiás el código del script después, hay que hacer *Implementar > Gestionar implementaciones > editar (lápiz) > Versión: nueva*, si no, sigue andando la versión vieja.
 
 ## Cómo funciona

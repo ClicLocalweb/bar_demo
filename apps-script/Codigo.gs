@@ -12,7 +12,7 @@ var AJUSTES = {
 };
 
 var HOJAS = {
-  Reservas: ["Fecha de pedido", "Nombre", "Teléfono", "Día", "Hora", "Personas", "Cumpleaños", "Acepta promos", "Estado", "ID evento"],
+  Reservas: ["Fecha de pedido", "Nombre", "Teléfono", "Día", "Hora", "Personas", "Cumpleaños", "Acepta promos", "Estado", "ID evento", "Confirmar"],
   Clientes: ["Teléfono", "Nombre", "Visitas", "Última visita", "Cumpleaños", "Acepta promos", "Beneficios ganados", "Alta"],
   Carta: ["Categoría", "Nombre", "Descripción", "Precio", "Disponible"]
 };
@@ -133,9 +133,12 @@ function guardarReserva_(d) {
     idEvento = "Error calendario: " + err;
   }
 
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Reservas").appendRow([
+  var hojaReservas = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Reservas");
+  hojaReservas.appendRow([
     new Date(), nombre, tel, d.dia, d.hora, personas, cumple, promos ? "Sí" : "No", "Pendiente", idEvento
   ]);
+  ponerTituloConfirmar_(hojaReservas);
+  ponerLinkConfirmar_(hojaReservas, hojaReservas.getLastRow(), nombre, tel, d.dia, d.hora, personas);
 
   actualizarCliente_(tel, nombre, cumple, promos, false);
 
@@ -146,6 +149,57 @@ function guardarReserva_(d) {
     } catch (err) { /* sin aviso por mail, la reserva igual quedó guardada */ }
   }
   return { ok: true };
+}
+
+/* ---------- Botón "Confirmar" por WhatsApp ----------
+   Cada reserva nueva trae en la columna K un link que abre WhatsApp
+   con el mensaje de confirmación ya escrito para ese cliente. */
+var COL_CONFIRMAR = 11; // columna K
+
+function ponerTituloConfirmar_(hoja) {
+  var celda = hoja.getRange(1, COL_CONFIRMAR);
+  if (!celda.getValue()) celda.setValue("Confirmar").setFontWeight("bold").setBackground("#eeeeee");
+}
+
+function ponerLinkConfirmar_(hoja, fila, nombre, tel, dia, hora, personas) {
+  var t = telefono_(tel);
+  if (!nombre || t.length < 8) return;
+  var texto = "Hola " + nombre + ", te confirmamos tu reserva para el " + diaLindo_(dia) +
+    " a las " + horaLinda_(hora) + " h, " + personas + (Number(personas) === 1 ? " persona" : " personas") +
+    ". ¡Te esperamos!";
+  var url = "https://wa.me/" + telefonoWhatsapp_(t) + "?text=" + encodeURIComponent(texto);
+  var link = SpreadsheetApp.newRichTextValue().setText("📲 Confirmar").setLinkUrl(url).build();
+  hoja.getRange(fila, COL_CONFIRMAR).setRichTextValue(link);
+}
+
+/* Elegí "completarConfirmar" arriba y tocá "Ejecutar" una vez:
+   pone el link de WhatsApp en las reservas que ya estaban cargadas. */
+function completarConfirmar() {
+  var hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Reservas");
+  ponerTituloConfirmar_(hoja);
+  if (hoja.getLastRow() < 2) return;
+  var rango = hoja.getRange(2, 1, hoja.getLastRow() - 1, COL_CONFIRMAR);
+  var filas = rango.getValues();
+  var textos = rango.getDisplayValues(); // la hora tal cual se ve (evita corrimientos raros)
+  for (var i = 0; i < filas.length; i++) {
+    var f = filas[i];
+    if (f[COL_CONFIRMAR - 1]) continue; // ya tiene link
+    ponerLinkConfirmar_(hoja, i + 2, String(f[1]).trim(), f[2], f[3], textos[i][4], f[5]);
+  }
+}
+
+// "2026-11-20" (o fecha de la planilla) -> "viernes 20/11"
+function diaLindo_(dia) {
+  var fecha = dia instanceof Date ? dia : Utilities.parseDate(String(dia), zona_(), "yyyy-MM-dd");
+  var nombres = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  var nro = Number(Utilities.formatDate(fecha, zona_(), "u")) % 7; // 1=lunes ... 7=domingo
+  return nombres[nro] + " " + Utilities.formatDate(fecha, zona_(), "dd/MM");
+}
+
+// "21:00" (o la hora como la guarda la planilla) -> "21:00"
+function horaLinda_(hora) {
+  if (hora instanceof Date) return Utilities.formatDate(hora, zona_(), "HH:mm");
+  return String(hora).slice(0, 5);
 }
 
 /* ---------- Visitas ---------- */
